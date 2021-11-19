@@ -173,7 +173,7 @@ type BatchWriteItem struct {
 //BatchWriteItemResponse for Batch Operation
 type BatchWriteItemResponse struct {
 	UnprocessedItems map[string][]BatchWriteSubItems `json:"UnprocessedItems"`
-}	
+}
 
 //BatchWriteSubItems is for BatchWriteItem
 type BatchWriteSubItems struct {
