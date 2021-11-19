@@ -23,6 +23,7 @@ import (
 	"syscall"
 
 	"cloud.google.com/go/spanner"
+	"cloud.google.com/go/firestore"
 	"github.com/cloudspannerecosystem/dynamodb-adapter/config"
 	"github.com/cloudspannerecosystem/dynamodb-adapter/models"
 	"github.com/cloudspannerecosystem/dynamodb-adapter/pkg/logger"
@@ -31,31 +32,47 @@ import (
 
 // Storage object for intracting with storage package
 type Storage struct {
-	spannerClient map[string]*spanner.Client
+	firestoreClient map[string] *firestore.Client
+	spannerClient 	map[string]	*spanner.Client
 }
 
 // storage - global instance of storage
 var storage *Storage
 
+func initFirestoreDriver() *firestore.Client {
+	client, err := firestore.NewClient(context.Background(), config.ConfigurationMap.GoogleProjectID)
+	if err != nil {
+		logger.LogFatal(err)
+	}
+	return client
+}
+
 func initSpannerDriver(instance string) *spanner.Client {
 	conf := spanner.ClientConfig{}
 
 	str := "projects/" + config.ConfigurationMap.GoogleProjectID + "/instances/" + instance + "/databases/" + config.ConfigurationMap.SpannerDb
-	Client, err := spanner.NewClientWithConfig(context.Background(), str, conf)
+	client, err := spanner.NewClientWithConfig(context.Background(), str, conf)
 	if err != nil {
 		logger.LogFatal(err)
 	}
-	return Client
+	return client
 }
 
 // InitializeDriver - this will Initialize databases object in global map
 func InitializeDriver() {
-
 	storage = new(Storage)
+	storage.firestoreClient = make(map[string]*firestore.Client)
 	storage.spannerClient = make(map[string]*spanner.Client)
-	for _, v := range models.SpannerTableMap {
-		if _, ok := storage.spannerClient[v]; !ok {
-			storage.spannerClient[v] = initSpannerDriver(v)
+
+	for _, table := range models.SpannerTableMap {
+		if _, ok := storage.spannerClient[table]; !ok {
+			storage.spannerClient[table] = initSpannerDriver(table)
+		}
+	}
+
+	for _, table := range models.FirestoreTableMap {
+		if _, ok := storage.firestoreClient[table]; !ok {
+			storage.firestoreClient[table] = initFirestoreDriver()
 		}
 	}
 }
@@ -87,4 +104,8 @@ func GetStorageInstance() *Storage {
 
 func (s Storage) getSpannerClient(tableName string) *spanner.Client {
 	return s.spannerClient[models.SpannerTableMap[utils.ChangeTableNameForSpanner(tableName)]]
+}
+
+func (s Storage) getFirestoreClient(tableName string) *firestore.Client {
+	return s.firestoreClient[models.FirestoreTableMap[utils.ChangeTableNameForSpanner(tableName)]]
 }

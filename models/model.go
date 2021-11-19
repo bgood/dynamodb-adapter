@@ -173,7 +173,7 @@ type BatchWriteItem struct {
 //BatchWriteItemResponse for Batch Operation
 type BatchWriteItemResponse struct {
 	UnprocessedItems map[string][]BatchWriteSubItems `json:"UnprocessedItems"`
-}
+}	
 
 //BatchWriteSubItems is for BatchWriteItem
 type BatchWriteSubItems struct {
@@ -253,6 +253,7 @@ var ConfigController *ConfigControllerModel
 
 // SpannerTableMap for spanner column map
 var SpannerTableMap = make(map[string]string)
+var FirestoreTableMap = make(map[string]string)
 
 func init() {
 	ConfigController = new(ConfigControllerModel)

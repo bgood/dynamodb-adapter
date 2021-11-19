@@ -78,11 +78,25 @@ func InitConfig(box *rice.Box) {
 		if err != nil {
 			logger.LogFatal(err)
 		}
+
 		ba, err = box.Bytes(env + "/spanner.json")
 		if err != nil {
 			logger.LogFatal(err)
 		}
 		tmp := make(map[string]string)
+		err = json.Unmarshal(ba, &tmp)
+		if err != nil {
+			logger.LogFatal(err)
+		}
+		for k, v := range tmp {
+			models.SpannerTableMap[utils.ChangeTableNameForSpanner(k)] = v
+		}
+
+		ba, err = box.Bytes(env + "/firestore.json")
+		if err != nil {
+			logger.LogFatal(err)
+		}
+		tmp = make(map[string]string)
 		err = json.Unmarshal(ba, &tmp)
 		if err != nil {
 			logger.LogFatal(err)
